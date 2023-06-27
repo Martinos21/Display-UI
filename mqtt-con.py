@@ -2,6 +2,19 @@ import paho.mqtt.publish as publish
 import psutil
 import time
 import os
+from pymodbus.client import ModbusSerialClient as ModbusClient
+
+
+client = ModbusClient(method='rtu', port='/dev/ttyUSB0',
+                       baudrate=19200, parity="N", stopbits=1,  timeout=2)
+
+client.connect()
+
+
+"""read = client.write_coil(address=0x330, value=False, slave=1)"""
+read = client.read_holding_registers(address=4, count=1, slave=1)
+
+print(read.registers)
 
 mqtt_auth= { 'username': "mqtt", 'password': "1JAControls" }
 
@@ -34,12 +47,16 @@ while (True):
         status = 'Offline'
         break
 
+
+    read = client.read_holding_registers(address=4, count=1, slave=1)
+    ccu = "CCU-baud" + read.registers
+    print(ccu)
     print(f"CPU vytížení: {cpu_percent}%")
     print(f"Využití paměti: {memory_percent}%")
     print(f"Využití disku: {disk_usage}%")
     print(f"Status OPI: {status}")
 
-
+    publish.single("ccu-baud", cpu_percent, hostname="54.73.206.157", auth=mqtt_auth)
     publish.single("cpu-percent1", cpu_percent, hostname="54.73.206.157", auth=mqtt_auth)
     publish.single("memory-percent1", memory_percent, hostname="54.73.206.157", auth=mqtt_auth)
     publish.single("disk-usage1", disk_usage, hostname="54.73.206.157", auth=mqtt_auth)
