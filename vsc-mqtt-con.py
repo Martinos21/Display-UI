@@ -1,5 +1,4 @@
-
-import minimalmodbus
+""""import minimalmodbus
 
 instrument = minimalmodbus.Instrument('/dev/tty.usbserial-TM43O4GP', 1)  # port name, slave address (in decimal)
 
@@ -32,5 +31,65 @@ if client.connect():  # Trying for connect to Modbus Server/Slave
         print(res)
 
 else:
-    print('Cannot connect to the Modbus Server/Slave')
+    print('Cannot connect to the Modbus Server/Slave')"""
+
+
+import paho.mqtt.client as mqtt 
+
+def on_connect(client, userdata, flags, rc):
+    # display connection infos; irrelevant for now
+    # print("Connected with result code " + str(rc))
+
+    # this works as well
+    # client.subscribe([("home/misc/vacuum/sally/stat/battery",1), ("home/oben/schlafzimmer/open/fenster/open",2)])
+    client.subscribe("status")
+    client.subscribe("random")
+
+def on_message(client, userdata, msg):
+    # don't display like `b'payload'` 
+    msg.payload = msg.payload.decode("utf-8")
+  
+    print (msg.payload)
+    if msg.topic == "status":
+        print(msg.payload)
+    if msg.topic == "random":
+        print(msg.payload)
+    
+
+
+
+
+        # print("Fenster Schlafzimmer ==> " + str(msg.payload))
+
+# def on_message(client2, userdata, msg):
+    # does this work?
+    # print("Fenster Schlafzimmer: " + str(msg.payload))
+
+client = mqtt.Client()
+client.on_connect = on_connect
+client.on_message = on_message
+
+client.connect("broker.hivemq.com", 1883, 60)
+#Set userid and password
+
+client.loop_forever()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
